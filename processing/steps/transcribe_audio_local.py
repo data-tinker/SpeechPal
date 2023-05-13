@@ -1,7 +1,7 @@
 from processing.step import AbstractStep
 
 
-class TranscribeAudioStep(AbstractStep):
+class TranscribeAudioLocalStep(AbstractStep):
     def __init__(self, model, audio_file, text_file):
         self._model = model
         self._audio_file = audio_file

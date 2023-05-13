@@ -2,7 +2,8 @@ from processing.pipeline import Pipeline
 
 
 class PipelineBuilder:
-    def __init__(self):
+    def __init__(self, req_id):
+        self._req_id = req_id
         self._steps = []
 
     def add_step(self, step):
@@ -10,4 +11,4 @@ class PipelineBuilder:
         return self
 
     def build(self):
-        return Pipeline(self._steps)
+        return Pipeline(self._req_id, self._steps)

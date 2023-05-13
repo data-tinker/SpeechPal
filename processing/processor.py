@@ -1,41 +1,63 @@
 from __future__ import unicode_literals
 
+import os
+
+from google.cloud import storage, speech
 from gramformer import Gramformer
 import whisper
 
-from file import File
+from processing.steps.cleanup import CleanUpStep
+from util.file import File
 from processing.pipeline_builder import PipelineBuilder
 from processing.steps.check_grammar import CheckGrammarStep
 from processing.steps.extract_audio import ExtractAudioStep
-from processing.steps.transcribe_audio import TranscribeAudioStep
+from processing.steps.transcribe_audio_local import TranscribeAudioLocalStep
+from processing.steps.transcribe_audio_cloud import TranscribeAudioCloudStep
 from processing.steps.youtube import YouTubeStep
-
-VIDEO_FILE = File('tmp', 'video', 'webm')
-AUDIO_FILE = File('tmp', 'audio', 'wav')
-TEXT_FILE = File('tmp', 'text', 'txt')
 
 
 class Processor:
-    ydl_opts = {
-        'outtmpl': f'{VIDEO_FILE.path}/{VIDEO_FILE.name}'
-    }
-    ffmpeg_opt = {
-        'format': 'wav',
-        'ab': '160k',
-        'ar': '44100',
-        'vn': True
-    }
     transcribe_model = whisper.load_model("base")
     grammar_model = Gramformer(models=1, use_gpu=False)
-    random_step = ExtractAudioStep({}, VIDEO_FILE, AUDIO_FILE)
+    storage_client = storage.Client()
+    speech_client = speech.SpeechClient()
 
     @classmethod
-    def process_youtube_link(cls, youtube_link):
-        pipeline = PipelineBuilder() \
-            .add_step(YouTubeStep(cls.ydl_opts, VIDEO_FILE, youtube_link)) \
-            .add_step(ExtractAudioStep(cls.ffmpeg_opt, VIDEO_FILE, AUDIO_FILE)) \
-            .add_step(TranscribeAudioStep(cls.transcribe_model, AUDIO_FILE, TEXT_FILE)) \
-            .add_step(CheckGrammarStep(cls.grammar_model, TEXT_FILE)) \
+    def process_youtube_video(cls, youtube_link, youtube_video_id):
+        report_file = File('tmp', youtube_video_id, f'report_{youtube_video_id}', 'txt')
+
+        if os.path.exists(report_file.full_path()):
+            return report_file
+
+        video_file = File('tmp', youtube_video_id, 'video', 'webm')
+        audio_file = File('tmp', youtube_video_id, 'audio', 'wav')
+        audio_chunk_file = File('tmp', youtube_video_id, 'audio_chunk', 'wav')
+        text_file = File('tmp', youtube_video_id, 'text', 'txt')
+
+        ydl_opts = {
+            'outtmpl': video_file.path_without_extension(),
+            'postprocessors': [{
+                'key': 'FFmpegVideoConvertor',
+                'preferedformat': 'webm',
+            }],
+        }
+        pipeline = PipelineBuilder(youtube_video_id) \
+            .add_step(YouTubeStep(ydl_opts, video_file, youtube_link)) \
+            .add_step(ExtractAudioStep(video_file, audio_file)) \
+            .add_step(TranscribeAudioCloudStep(
+                audio_file,
+                audio_chunk_file,
+                text_file
+            )) \
+            .add_step(CheckGrammarStep(cls.grammar_model, text_file, report_file)) \
+            .add_step(CleanUpStep(
+                video_file,
+                audio_file,
+                audio_chunk_file,
+                text_file
+            )) \
             .build()
 
         pipeline.run()
+
+        return report_file
