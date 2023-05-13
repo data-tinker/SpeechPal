@@ -28,12 +28,8 @@ class Processor:
         audio_chunk_file = File('tmp', youtube_video_id, 'audio_chunk', 'wav')
         text_file = File('tmp', youtube_video_id, 'text', 'txt')
 
-        ydl_opts = {
-            'outtmpl': video_file.path_without_extension(),
-            'format': 'bestvideo[ext=webm]+bestaudio[ext=webm]/best[ext=webm]'
-        }
         pipeline = PipelineBuilder(youtube_video_id) \
-            .add_step(YouTubeStep(ydl_opts, video_file, youtube_link)) \
+            .add_step(YouTubeStep(video_file, youtube_link)) \
             .add_step(ExtractAudioStep(video_file, audio_file)) \
             .add_step(TranscribeAudioCloudStep(
                 audio_file,
