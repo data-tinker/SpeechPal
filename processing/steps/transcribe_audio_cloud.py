@@ -23,7 +23,7 @@ class TranscribeAudioCloudStep(AbstractStep):
             audio_file,
             min_silence_len=1000,
             silence_thresh=-40,
-            seek_step=1000
+            seek_step=100
         )
 
         transcript = ''

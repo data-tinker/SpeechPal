@@ -2,25 +2,19 @@ from __future__ import unicode_literals
 
 import os
 
-from google.cloud import storage, speech
 from gramformer import Gramformer
-import whisper
 
 from processing.steps.cleanup import CleanUpStep
 from util.file import File
 from processing.pipeline_builder import PipelineBuilder
 from processing.steps.check_grammar import CheckGrammarStep
 from processing.steps.extract_audio import ExtractAudioStep
-from processing.steps.transcribe_audio_local import TranscribeAudioLocalStep
 from processing.steps.transcribe_audio_cloud import TranscribeAudioCloudStep
 from processing.steps.youtube import YouTubeStep
 
 
 class Processor:
-    transcribe_model = whisper.load_model("base")
     grammar_model = Gramformer(models=1, use_gpu=False)
-    storage_client = storage.Client()
-    speech_client = speech.SpeechClient()
 
     @classmethod
     def process_youtube_video(cls, youtube_link, youtube_video_id):
@@ -36,10 +30,7 @@ class Processor:
 
         ydl_opts = {
             'outtmpl': video_file.path_without_extension(),
-            'postprocessors': [{
-                'key': 'FFmpegVideoConvertor',
-                'preferedformat': 'webm',
-            }],
+            'format': 'bestvideo[ext=webm]+bestaudio[ext=webm]/best[ext=webm]'
         }
         pipeline = PipelineBuilder(youtube_video_id) \
             .add_step(YouTubeStep(ydl_opts, video_file, youtube_link)) \

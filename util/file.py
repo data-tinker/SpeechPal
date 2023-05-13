@@ -12,6 +12,3 @@ class File(NamedTuple):
 
     def path_without_extension(self):
         return f'{self.path}/{self.id}/{self.name}'
-
-    def id_name_and_extension(self):
-        return f'{self.id}/{self.name}/{self.extension}'

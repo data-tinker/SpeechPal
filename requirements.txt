@@ -1,8 +1,7 @@
-ffmpeg==1.4
+ffmpeg-python==0.2.0
 openai==0.27.6
 protobuf==4.23.0
 pydub==0.25.1
 pyTelegramBotAPI==4.11.0
 torch==2.0.1
-whisper==1.1.10
 yt_dlp==2023.3.4
