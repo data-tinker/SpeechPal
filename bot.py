@@ -27,7 +27,6 @@ bot = telebot.TeleBot(os.getenv('BOT_TOKEN'), num_threads=10)
 def send_youtube_video(message):
     youtube_link = message.text.split()[1]
     youtube_video_id = get_youtube_video_id(youtube_link)
-    print(youtube_video_id)
     report_file = Processor.process_youtube_video(youtube_link, youtube_video_id)
     with open(report_file.full_path(), 'rb') as f:
         bot.send_media_group(
