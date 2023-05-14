@@ -1,0 +1,13 @@
+#!/bin/bash
+
+set -xeo pipefail
+
+PHANTOMJS_VERSION=${1:-1.9.8}
+PHANTOMJS_FILE="phantomjs-$PHANTOMJS_VERSION-linux-x86_64"
+
+cd /tmp
+wget https://bitbucket.org/ariya/phantomjs/downloads/$PHANTOMJS_FILE.tar.bz2
+tar xvjf $PHANTOMJS_FILE.tar.bz2
+
+cp "$PHANTOMJS_FILE/bin/phantomjs" "/usr/bin/"
+rm -rf /tmp/*

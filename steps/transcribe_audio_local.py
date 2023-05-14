@@ -1,4 +1,4 @@
-from processing.step import AbstractStep
+from steps.step import AbstractStep
 
 
 class TranscribeAudioLocalStep(AbstractStep):

@@ -1,6 +1,6 @@
 import openai
 
-from processing.step import AbstractStep
+from steps.step import AbstractStep
 
 import re
 

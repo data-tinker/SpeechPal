@@ -4,13 +4,12 @@ import os
 
 from gramformer import Gramformer
 
-from processing.steps.cleanup import CleanUpStep
 from util.file import File
 from processing.pipeline_builder import PipelineBuilder
-from processing.steps.check_grammar import CheckGrammarStep
-from processing.steps.extract_audio import ExtractAudioStep
-from processing.steps.transcribe_audio_cloud import TranscribeAudioCloudStep
-from processing.steps.youtube import YouTubeStep
+from steps.check_grammar import CheckGrammarStep
+from steps.cleanup import CleanUpStep
+from steps.transcribe_audio_cloud import TranscribeAudioCloudStep
+from steps.youtube import YouTubeStep
 
 
 class Processor:
@@ -23,26 +22,19 @@ class Processor:
         if os.path.exists(report_file.full_path()):
             return report_file
 
-        video_file = File('tmp', youtube_video_id, 'video', 'webm')
-        audio_file = File('tmp', youtube_video_id, 'audio', 'wav')
-        audio_chunk_file = File('tmp', youtube_video_id, 'audio_chunk', 'wav')
+        audio_file = File('tmp', youtube_video_id, 'audio', 'm4a')
+        audio_chunk_file = File('tmp', youtube_video_id, 'audio_chunk', 'm4a')
         text_file = File('tmp', youtube_video_id, 'text', 'txt')
 
         pipeline = PipelineBuilder(youtube_video_id) \
-            .add_step(YouTubeStep(video_file, youtube_link)) \
-            .add_step(ExtractAudioStep(video_file, audio_file)) \
+            .add_step(YouTubeStep(audio_file, youtube_link)) \
             .add_step(TranscribeAudioCloudStep(
                 audio_file,
                 audio_chunk_file,
                 text_file
             )) \
             .add_step(CheckGrammarStep(cls.grammar_model, text_file, report_file)) \
-            .add_step(CleanUpStep(
-                video_file,
-                audio_file,
-                audio_chunk_file,
-                text_file
-            )) \
+            .add_step(CleanUpStep([audio_file, audio_chunk_file, text_file])) \
             .build()
 
         pipeline.run()

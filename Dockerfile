@@ -7,7 +7,9 @@ COPY bot.py bot.py
 COPY server.py server.py
 COPY run.sh run.sh
 COPY processing processing
+COPY steps steps
 COPY util util
+COPY scripts scripts
 
 # Args
 ARG BOT_TOKEN
@@ -21,10 +23,23 @@ ENV OPENAI_ORG=$OPENAI_ORG
 
 EXPOSE 8080
 
-RUN apt-get update && apt-get install ffmpeg -y
+RUN apt-get update
+
+# Install ffmpeg
+RUN apt-get install ffmpeg -y
+
+# Install phantomjs
+RUN apt-get install build-essential chrpath libssl-dev libxft-dev -y
+RUN apt-get install libfreetype6 libfreetype6-dev  -y
+RUN apt-get install libfontconfig1 libfontconfig1-dev -y
+RUN scripts/install-phantomjs 2.1.1
+
+# Install python modules
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 RUN pip install -U git+https://github.com/PrithivirajDamodaran/Gramformer.git
+
+# Install language model
 RUN python -m spacy download en
 
 CMD ["./run.sh"]
