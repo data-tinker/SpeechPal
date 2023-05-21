@@ -15,17 +15,19 @@ class CheckGrammarStep(AbstractStep):
         with open(self._text_file.full_path(), 'r') as f:
             text = f.read()
 
-        sentences = re.split(r'(?<=[.!?])\s+', text)[:-1]
+        sentences = re.split(r'(?<=[.!?])\s+', text)
 
         with open(self._report_file.full_path(), 'w') as f:
             for sentence in sentences:
+                if not sentence:
+                    continue
                 corrected_sentences = self._model.correct(sentence, max_candidates=1)
 
                 if len(corrected_sentences) == 1 and corrected_sentences.pop() == sentence:
                     continue
 
-                for corrected_sentence in corrected_sentences:
-                    print("[Edits] ", self._model.get_edits(sentence, corrected_sentence))
+                # for corrected_sentence in corrected_sentences:
+                #     print("[Edits] ", self._model.get_edits(sentence, corrected_sentence))
 
                 edits = openai.Completion.create(
                     model='text-davinci-003',
