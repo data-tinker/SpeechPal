@@ -1,4 +1,5 @@
 import os
+from collections import defaultdict
 
 import torch
 import telebot
@@ -18,6 +19,29 @@ set_seed(1212)
 openai.organization = os.getenv('OPENAI_ORG')
 openai.api_key = os.getenv('OPENAI_API_KEY')
 bot = telebot.TeleBot(os.getenv('BOT_TOKEN'), num_threads=10)
+
+questions = [
+    'Tell me about yourself',
+    'Why do you want to work for our company?',
+    'Tell me about a time when you started a project from scratch?',
+    'Thank you for testing our bot! You can continue using it by recording an audio message or sending an audio file from your phone.',
+]
+
+user_questions = defaultdict(lambda: iter(questions))
+users_in_testing_process = set()
+
+
+@bot.message_handler(commands=['test'])
+def process_test_question(message):
+    user_id = message.from_user.id
+    try:
+        users_in_testing_process.add(user_id)
+        next_question = next(user_questions[user_id])
+
+        bot.send_message(user_id, next_question)
+    except StopIteration:
+        user_questions.pop(user_id)
+        users_in_testing_process.remove(user_id)
 
 
 @bot.message_handler(commands=['start'], content_types=['text'])
@@ -52,6 +76,8 @@ def process_voice(message):
         message,
         Processor.process_telegram_voice(downloaded_file, file_info.file_unique_id)
     )
+    if message.from_user.id in users_in_testing_process:
+        process_test_question(message)
 
 
 @bot.message_handler(content_types=['audio'])
