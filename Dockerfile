@@ -11,6 +11,7 @@ ARG OPENAI_ORG
 ENV BOT_TOKEN=$BOT_TOKEN
 ENV OPENAI_API_KEY=$OPENAI_API_KEY
 ENV OPENAI_ORG=$OPENAI_ORG
+ENV MONGO_DB_CONNECTION=$MONGO_DB_CONNECTION
 
 EXPOSE 8080
 
@@ -32,13 +33,11 @@ COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 RUN pip install -U git+https://github.com/PrithivirajDamodaran/Gramformer.git
 
-# Install language model
-RUN python -m spacy download en
-
 COPY bot.py bot.py
 COPY server.py server.py
 COPY run.sh run.sh
 COPY processing processing
+COPY persistence persistence
 COPY steps steps
 COPY util util
 

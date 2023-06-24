@@ -1,3 +1,4 @@
+import os
 from typing import NamedTuple
 
 
@@ -12,3 +13,6 @@ class File(NamedTuple):
 
     def path_without_extension(self):
         return f'{self.path}/{self.id}/{self.name}'
+
+    def size_in_bytes(self):
+        return os.path.getsize(self.full_path())

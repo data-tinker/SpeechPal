@@ -1,9 +1,10 @@
+import json
 import os
 from collections import defaultdict
 
-import torch
-import telebot
 import openai
+import telebot
+import torch
 
 from processing.processor import Processor
 
@@ -90,21 +91,12 @@ def process_audio(message):
     )
 
 
-def bot_create_response(message, report_file):
-    with open(report_file.full_path(), 'r') as f:
-        response = f.read()
-        if response:
-            bot.send_message(
-                message.from_user.id,
-                response,
-                reply_to_message_id=message.message_id
-            )
-        else:
-            bot.send_message(
-                message.from_user.id,
-                "No errors, good job!",
-                reply_to_message_id=message.message_id
-            )
+def bot_create_response(message, report):
+    bot.send_message(
+        message.from_user.id,
+        json.dumps(report),
+        reply_to_message_id=message.message_id
+    )
 
 
 if __name__ == '__main__':

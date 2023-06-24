@@ -3,28 +3,32 @@ from __future__ import unicode_literals
 import os
 import pathlib
 
-from gramformer import Gramformer
-
-from steps.telegram_audio_step import TelegramAudioStep
-from util.file import File
+from persistence.reports_repository import ReportsRepository
 from processing.pipeline_builder import PipelineBuilder
 from steps.check_grammar import CheckGrammarStep
 from steps.cleanup import CleanUpStep
+from steps.process_report import ProcessReportStep
+from steps.telegram_audio_step import TelegramAudioStep
 from steps.transcribe_audio_cloud import TranscribeAudioCloudStep
 from steps.youtube import YouTubeStep
+from util.file import File
 from util.youtube import get_youtube_video_id
+
+mongo_db_connection = os.getenv('MONGO_DB_CONNECTION')
 
 
 class Processor:
-    grammar_model = Gramformer(models=1, use_gpu=False)
+    reports_repository = ReportsRepository(mongo_db_connection)
 
     @classmethod
     def process_youtube_video(cls, youtube_link):
         youtube_video_id = get_youtube_video_id(youtube_link)
         report_file = File('tmp', youtube_video_id, f'report_{youtube_video_id}', 'txt')
 
-        if os.path.exists(report_file.full_path()):
-            return report_file
+        report = cls.reports_repository.get_by_id(youtube_video_id)
+
+        if report is not None:
+            return report
 
         audio_file = File('tmp', youtube_video_id, 'audio', 'm4a')
         audio_chunk_file = File('tmp', youtube_video_id, 'audio_chunk', 'm4a')
@@ -37,13 +41,14 @@ class Processor:
                 audio_chunk_file,
                 text_file
             )) \
-            .add_step(CheckGrammarStep(cls.grammar_model, text_file, report_file)) \
+            .add_step(CheckGrammarStep(text_file, report_file)) \
+            .add_step(ProcessReportStep(youtube_video_id, report_file, cls.reports_repository)) \
             .add_step(CleanUpStep([audio_file, audio_chunk_file, text_file])) \
             .build()
 
         pipeline.run()
 
-        return report_file
+        return cls.reports_repository.get_by_id(youtube_video_id)
 
     @classmethod
     def process_telegram_voice(cls, downloaded_file, file_id):
@@ -61,8 +66,10 @@ class Processor:
     def _process_audio(cls, file_id, downloaded_file, telegram_audio_file):
         report_file = File('tmp', file_id, f'report_{file_id}', 'txt')
 
-        if os.path.exists(report_file.full_path()):
-            return report_file
+        report = cls.reports_repository.get_by_id(file_id)
+
+        if report is not None:
+            return report
 
         audio_file = File('tmp', file_id, 'audio', 'm4a')
         audio_chunk_file = File('tmp', file_id, 'audio_chunk', 'm4a')
@@ -75,10 +82,11 @@ class Processor:
                 audio_chunk_file,
                 text_file
             )) \
-            .add_step(CheckGrammarStep(cls.grammar_model, text_file, report_file)) \
-            .add_step(CleanUpStep([telegram_audio_file, audio_file, audio_chunk_file, text_file])) \
+            .add_step(CheckGrammarStep(text_file, report_file)) \
+            .add_step(ProcessReportStep(file_id, report_file, cls.reports_repository)) \
+            .add_step(CleanUpStep([telegram_audio_file, audio_file, audio_chunk_file, text_file, report_file])) \
             .build()
 
         pipeline.run()
 
-        return report_file
+        return cls.reports_repository.get_by_id(file_id)
