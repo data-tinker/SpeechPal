@@ -11,4 +11,4 @@ build-cloud:
 	gcloud builds submit --region=us-west2 --tag us-west2-docker.pkg.dev/horizontal-leaf-386604/speechpal-repo/speechpal-image
 
 run-cloud:
-	gcloud run deploy --image us-west2-docker.pkg.dev/horizontal-leaf-386604/speechpal-repo/speechpal-image
+	gcloud run deploy speechpal-image --image us-west2-docker.pkg.dev/horizontal-leaf-386604/speechpal-repo/speechpal-image
