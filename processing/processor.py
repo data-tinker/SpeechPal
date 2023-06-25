@@ -15,6 +15,7 @@ from util.file import File
 from util.youtube import get_youtube_video_id
 
 mongo_db_connection = os.getenv('MONGO_DB_CONNECTION')
+REPORT_URL_TEMPLATE = "https://speechpal.co/reports/{}"
 
 
 class Processor:
@@ -48,7 +49,7 @@ class Processor:
 
         pipeline.run()
 
-        return cls.reports_repository.get_by_id(youtube_video_id)
+        return REPORT_URL_TEMPLATE.format(youtube_video_id)
 
     @classmethod
     def process_telegram_voice(cls, downloaded_file, file_id):
@@ -89,4 +90,4 @@ class Processor:
 
         pipeline.run()
 
-        return cls.reports_repository.get_by_id(file_id)
+        return REPORT_URL_TEMPLATE.format(file_id)

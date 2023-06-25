@@ -1,4 +1,3 @@
-import json
 import os
 from collections import defaultdict
 
@@ -81,10 +80,10 @@ def process_audio(message):
     )
 
 
-def bot_create_response(message, report):
+def bot_create_response(message, report_url):
     bot.send_message(
         message.from_user.id,
-        json.dumps(report),
+        report_url,
         reply_to_message_id=message.message_id
     )
 
