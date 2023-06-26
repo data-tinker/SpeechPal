@@ -12,10 +12,12 @@ class ProcessReportStep(AbstractStep):
     def process(self):
         with open(self._report_file.full_path(), 'r') as f:
             report = json.load(f)
+            has_errors = any(x.get('edit', False) for x in report)
 
             report_doc = {
                 '_id': self._doc_id,
-                'report': report
+                'report': report,
+                'has_errors': has_errors
             }
 
             self._reports_repository.insert_document(report_doc)
