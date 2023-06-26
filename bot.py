@@ -83,7 +83,7 @@ def process_audio(message):
 def bot_create_response(message, report_url):
     bot.send_message(
         message.from_user.id,
-        report_url,
+        f'You can check your results here: \n{report_url}',
         reply_to_message_id=message.message_id
     )
 
