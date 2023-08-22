@@ -1,4 +1,4 @@
-Telegram bot that can be used to check your English grammar. 
+Telegram bot for checking the grammar of your spoken sentences. 
 Built using:
 * Python 3
 * pyTelegramBotAPI
